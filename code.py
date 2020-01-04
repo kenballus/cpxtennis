@@ -1,6 +1,5 @@
 from random import randint
 from time import sleep
-from math import log
 from adafruit_circuitplayground.express import cpx
 
 def gameloop():
@@ -138,11 +137,8 @@ def score_point(player, score):
         game_over(1 - player, score)
         return True
 
-    while True:
-        if cpx.button_a and cpx.button_b:
-            while True:
-                if not cpx.button_a and not cpx.button_b:
-                    return False
+    wait_for_start()
+    return False
 
 def game_over(loser, score):
     print("Player", "AB"[1 - loser], "won", score[0], "to", str(score[1]) + ".")
@@ -154,10 +150,10 @@ def game_over(loser, score):
     elif loser == 1:
         rainbow(range(5))
 
-def clear_pixels():
+def clear_pixels(spread=range(10)):
     """ Turns off all pixels """
 
-    for i in range(10):
+    for i in spread:
         cpx.pixels[i] = (0, 0, 0)
 
 def flash_red(pixels):
@@ -213,15 +209,37 @@ def rainbow(pixels):
 
     clear_pixels()
 
-def main():
+def half_color(half, color):
+    if half == "A":
+        for i in range(5):
+            cpx.pixels[i] = color
+    elif half == "B":
+        for i in range(5, 10):
+            cpx.pixels[i] = color
 
-    # The game starts when both players press their buttons simulataneously, then both release
+def wait_for_start():
+    """ The game starts when both players press their buttons simulataneously, then both release. """
+
+    a_pressed = False
+    b_pressed = False
+
     while True:
-        if cpx.button_a and cpx.button_b:
+        if cpx.button_a:
+            half_color("A", (0, 30, 0))
+            a_pressed = True
+
+        if cpx.button_b:
+            half_color("B", (0, 30, 0))
+            b_pressed = True
+
+        if a_pressed and b_pressed:
             while True:
                 if not cpx.button_a and not cpx.button_b:
-                    gameloop()
-                    break
+                    return
 
+def main():
+    while True:
+        wait_for_start()
+        gameloop()
 
 main()
